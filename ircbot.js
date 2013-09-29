@@ -21,9 +21,10 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 	console.log("All librarys required were found.");
 	console.log("Loading the following games: '" + games.join(', ') + "'");
 	
+	this.games = {};
 	for (var key = 0; key < games.length; key++) {
 		try {
-			this.games[games[key]] = require("games/" + games[key] + ".js");
+			this.games[games[key]] = require("./games/" + games[key] + ".js");
 		} catch (e) {
 			console.log(e);
 		}
@@ -81,7 +82,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "chat.freenode.net";
 		irc.name = irc.username || irc.name || "Theubercoolguyo";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#node.js"];
+		irc.config.channels = irc.config.channels || [""];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
