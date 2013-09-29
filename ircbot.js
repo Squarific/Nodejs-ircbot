@@ -47,7 +47,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			}
 			this.database.query("USE " + database.database, function (err) {
 				if (err) {
-					throw err;;
+					throw err;
 				}
 				console.log("Selected database " + database.database);
 				this.createTable();
@@ -96,6 +96,10 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 				}
 				this.commands[command[0]](from, to, message, command)
 			}
+			if (this.games[command[0]] && typeof this.games[command[0]].commands[command[1]] === "function") {
+				command.splice(0, 2);
+				this.games[command[0]].commands[command[1]](from, to, message, command);
+			}
 			this.database.query("INSERT INTO messages SET ?", {from: from, to: to, message: message}, function (err, result) {
 				if (err) {
 					console.log("Database Error. ", err, result);
@@ -109,8 +113,8 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		
 		console.log("Initiating games.");
 		for (var key in this.games) {
-			if (typeof this.games[key].init === "function") {
-				this.games[key].init(this);
+			if (typeof this.games[key] === "function") {
+				this.games[key] = new this.games[key](this);
 			}
 		}
 		console.log("Games initiated.");
@@ -147,7 +151,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		var game = command[0];
 		command.splice(0, 1);
 		if (this.games[game] && typeof this.games[game].start === "function") {
-			this.games[game].start(command);
+			this.games[game].start(from, command);
 		}
 	}.bind(this);
 	this.commands.help = function (from, to, message, command) {
