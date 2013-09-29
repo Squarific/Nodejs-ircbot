@@ -203,7 +203,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			sayTo = from;
 		}
 		this.ircClient.say(sayTo, from + ", the following commands are available: " + cmds.join(", "));
-		this.ircClient.say(sayTo, "My sourcecode can be found at: *url*")
+		this.ircClient.say(sayTo, "My sourcecode can be found at: https://github.com/Squarific/Nodejs-ircbot")
 	}.bind(this);
 };
 
