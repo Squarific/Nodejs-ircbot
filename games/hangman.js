@@ -97,7 +97,7 @@ exports.construct = function HangMan (bot) {
 	this.commands.accept = function (from, to, message, command) {
 		var accepted = false;
 		for (var key = 0; key < this.games.length; key++) {
-			if (this.games[key].playIn.toLowerCase() === from.toLowerCase() || (this.games[key].playIn === to.toLowerCase() && to.toLowerCase() !== bot.irc.name.toLowerCase())) {
+			if (this.games[key].playIn === from || (this.games[key].playIn === to && to !== bot.irc.name)) {
 				this.games[key].accepted = true;
 				bot.ircClient.say(this.games[key].playIn, "You succesfully accepted a game from " + this.games[key].owner + " say 'hangman guess [letter/word] to guess.");
 				bot.ircClient.say(this.games[key].playIn, "The word you have to guess:" + new Array(this.games[key].word.length + 1).join(' _') + " you have " + this.games[key].guesssLeft + " guesss to get it.");

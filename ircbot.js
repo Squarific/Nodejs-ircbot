@@ -80,7 +80,8 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 	this.constructIrc = function constructIrc () {
 		irc = irc || {};
 		irc.server = irc.server || "chat.freenode.net";
-		irc.name = irc.username || irc.name || "Theubercoolguyo";
+		irc.name = irc.username || irc.name || "theubercoolguyo";
+		irc.name = irc.name.toLowerCase();
 		irc.config = irc.config || {};
 		irc.config.channels = irc.config.channels || ["#node.js", "#lololol"];
 		this.irc = irc;
@@ -88,15 +89,17 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		console.log("Connecting to the irc server...");
 		this.ircClient = new requires.irc.Client(irc.server, irc.name, irc.config);
 		this.ircClient.addListener("message", function (from, to, message) {
+			from = from.toLowerCase();
+			to = to.toLowerCase();
 			var command = message.toLowerCase().split(" ");
 			if (this.games[command[0]] && typeof this.games[command[0]].commands[command[1]] === "function") {
 				var game = command[0],
 					cmd = command[1];
 				command.splice(0, 2);
 				this.games[game].commands[cmd](from, to, message, command);
-			} else if (command[0] === this.irc.name.toLowerCase() || to === this.irc.name.toLowerCase()) {
+			} else if (command[0] === this.irc.name) || to === this.irc.name) {
 				var cmd;
-				if (command[0] === this.irc.name.toLowerCase()) {
+				if (command[0] === this.irc.name) {
 					cmd = command[1];
 					command.splice(0, 2);
 				} else {
@@ -179,7 +182,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			for (var key in this.games) {
 				games.push(key);
 			}
-			if (to !== this.irc.name.toLowerCase()) {
+			if (to !== this.irc.name) {
 				sayTo = to;
 			} else {
 				sayTo = from;
@@ -194,7 +197,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 				cmds.push(key);
 			}
 		}
-		if (to !== this.irc.name.toLowerCase()) {
+		if (to !== this.irc.name) {
 			sayTo = to;
 		} else {
 			sayTo = from;
