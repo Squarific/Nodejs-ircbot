@@ -142,8 +142,14 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		}
 	}.bind(this);
 	this.commands.help = function (from, to, message, command) {
-		
-	};
+		var cmds = [];
+		for (var key in this.commands) {
+			if (this.commands.hasOwnProperty(key)) {
+				cmds.push(key);
+			}
+		}
+		this.ircClient(to, from + ", the following commands are available: " + cmds.join(", "));
+	}.bind(this);
 };
 
 console.log("Starting IRCBOT");
