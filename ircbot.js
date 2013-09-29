@@ -79,11 +79,12 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 	
 	this.constructIrc = function constructIrc () {
 		irc = irc || {};
-		irc.server = irc.server || "chat.freenode.net";
-		irc.name = irc.username || irc.name || "theubercoolguyo";
+		irc.server = irc.server || "irc.snoonet.org";
+		irc.name = irc.username || irc.name || "urbangamebot";
 		irc.name = irc.name.toLowerCase();
+		irc.password = irc.password || "*";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#node.js", "#lololol"];
+		irc.config.channels = irc.config.channels || ["#reddit", "#help"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
@@ -97,7 +98,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 					cmd = command[1];
 				command.splice(0, 2);
 				this.games[game].commands[cmd](from, to, message, command);
-			} else if (command[0] === this.irc.name) || to === this.irc.name) {
+			} else if (command[0] === this.irc.name || to === this.irc.name) {
 				var cmd;
 				if (command[0] === this.irc.name) {
 					cmd = command[1];
@@ -120,6 +121,9 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 
 		this.ircClient.addListener("registered", function () {
 			console.log("Connected to the irc server.");
+			if (this.irc.password) {
+				this.ircClient.say("NickServ", "IDENTIFY " + this.irc.name + " " + this.irc.password);
+			}
 		});
 
 		this.ircClient.addListener("error", function (err) {
@@ -145,6 +149,13 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			this.ircClient.say(from, "You are not identified. First identify yourself by messaging me 'identify [password]'");
 		}
 	}.bind(this);
+	this.commands.nick = function (from, to, message, command) {
+		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
+			this.ircClient.nick();
+		} else {
+			this.ircClient.say(from, "You are not identified. First identify yourself by messaging me 'identify [password]'");
+		}
+	}.bind(this);
 	this.commands.say = function (from, to, message, command) {
 		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
 			var sayTo = command[0];
@@ -155,7 +166,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		}
 	}.bind(this);
 	this.commands.identify = function (from, to, message, command) {
-		if (command[0] === "lolled1") {
+		if (command[0] === "*") {
 			this.identified[from] = {
 				at: Date.now(),
 				level: 0
