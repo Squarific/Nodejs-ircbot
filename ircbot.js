@@ -82,9 +82,9 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "irc.snoonet.org";
 		irc.name = irc.username || irc.name || "urbangamebot";
 		irc.name = irc.name.toLowerCase();
-		irc.password = irc.password || "*";
+		irc.password = irc.password || "lolled1";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#reddit", "#help"];
+		irc.config.channels = irc.config.channels || ["#reddit", "#hangman"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
@@ -124,7 +124,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			if (this.irc.password) {
 				this.ircClient.say("NickServ", "IDENTIFY " + this.irc.name + " " + this.irc.password);
 			}
-		});
+		}.bind(this));
 
 		this.ircClient.addListener("error", function (err) {
 			console.log("IRC ERROR: ", err);
@@ -149,13 +149,6 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			this.ircClient.say(from, "You are not identified. First identify yourself by messaging me 'identify [password]'");
 		}
 	}.bind(this);
-	this.commands.nick = function (from, to, message, command) {
-		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
-			this.ircClient.nick();
-		} else {
-			this.ircClient.say(from, "You are not identified. First identify yourself by messaging me 'identify [password]'");
-		}
-	}.bind(this);
 	this.commands.say = function (from, to, message, command) {
 		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
 			var sayTo = command[0];
@@ -166,7 +159,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		}
 	}.bind(this);
 	this.commands.identify = function (from, to, message, command) {
-		if (command[0] === "*") {
+		if (command[0] === this.irc.password) {
 			this.identified[from] = {
 				at: Date.now(),
 				level: 0
@@ -214,6 +207,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			sayTo = from;
 		}
 		this.ircClient.say(sayTo, from + ", the following commands are available: " + cmds.join(", "));
+		this.ircClient.say(sayTo, "You can try playing a hangman game: with the command 'game hangman [user/channel] [word or 'randomword'] (optional: amount (number) of guesses allowed)'");
 		this.ircClient.say(sayTo, "My sourcecode can be found at: https://github.com/Squarific/Nodejs-ircbot")
 	}.bind(this);
 };

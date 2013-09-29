@@ -9,36 +9,7 @@ exports.construct = function HangMan (bot) {
 			}
 		}
 	}
-	this.letterInWord = function (word, letter) {
-		return this.inArray(letter, word);
-	};
-	this.inArray = function (el, arr) {
-		for (var key = 0; key < arr.length; key++) {
-			if (arr[key] === el) {
-				return true;
-			}
-		}
-		return false;
-	};
-	this.wordWhenLettersguessd = function (word, letters) {
-		var returnWord = "";
-		for (var key = 0; key < word.length; key++) {
-			if (this.inArray(word[key], letters)) {
-				returnWord += word[key] + " ";
-			} else {
-				returnWord += "_ ";
-			}
-		}
-		return returnWord;
-	};
-	this.wordguessd = function (word, letters) {
-		for (var key = 0; key < word.length; key++) {
-			if (!this.inArray(word[key], letters)) {
-				return false;
-			}
-		}
-		return true;
-	};
+
 	this.start = function (from, command) {
 		for (var key = 0; key < this.games.length; key++) {
 			if (this.games[key].owner === from && this.games[key].playIn === command[0] ||
@@ -63,7 +34,7 @@ exports.construct = function HangMan (bot) {
 				playIn: command[0],
 				accepted: false,
 				tried: [],
-				guesssLeft: command[2] || 8,
+				guesssLeft: parseInt(command[2]) || 8,
 				word: word
 			});
 			bot.ircClient.say(from, "You have succesfully invited " + command[0] + " to play a game of hangman with you.");
@@ -76,6 +47,7 @@ exports.construct = function HangMan (bot) {
 		if (!command[0]) {
 			for (var key = 0; key < this.games.length; key++) {
 				if (this.games[key].owner === from) {
+					bot.ircClient.say(this.games[key].playIn, from + " disbanded your game.");
 					this.games.splice(key, 1);
 					key--;
 					count++;
@@ -99,7 +71,7 @@ exports.construct = function HangMan (bot) {
 		for (var key = 0; key < this.games.length; key++) {
 			if (this.games[key].playIn === from || (this.games[key].playIn === to && to !== bot.irc.name)) {
 				this.games[key].accepted = true;
-				bot.ircClient.say(this.games[key].playIn, "You succesfully accepted a game from " + this.games[key].owner + " say 'hangman guess [letter/word] to guess.");
+				bot.ircClient.say(this.games[key].playIn, "You succesfully accepted a game from " + this.games[key].owner + " say 'hangman guess [letter/word]' to guess.");
 				bot.ircClient.say(this.games[key].playIn, "The word you have to guess:" + new Array(this.games[key].word.length + 1).join(' _') + " you have " + this.games[key].guesssLeft + " guesss to get it.");
 				accepted = true;
 			}
@@ -146,4 +118,35 @@ exports.construct = function HangMan (bot) {
 	this.commands.help = function (from, to, message, command) {
 		bot.ircClient.say(from, "You can start a game by saying: hangman start [channel/username] [word OR 'randomword']");
 	}.bind(this);
+	
+	this.letterInWord = function (word, letter) {
+		return this.inArray(letter, word);
+	};
+	this.inArray = function (el, arr) {
+		for (var key = 0; key < arr.length; key++) {
+			if (arr[key] === el) {
+				return true;
+			}
+		}
+		return false;
+	};
+	this.wordWhenLettersguessd = function (word, letters) {
+		var returnWord = "";
+		for (var key = 0; key < word.length; key++) {
+			if (this.inArray(word[key], letters)) {
+				returnWord += word[key] + " ";
+			} else {
+				returnWord += "_ ";
+			}
+		}
+		return returnWord;
+	};
+	this.wordguessd = function (word, letters) {
+		for (var key = 0; key < word.length; key++) {
+			if (!this.inArray(word[key], letters)) {
+				return false;
+			}
+		}
+		return true;
+	};
 };
