@@ -1,4 +1,4 @@
-exports = function HangMan (bot) {
+exports.construct = function HangMan (bot) {
 	this.games = [];
 	this.words = ["ball", "lol", "congrats", "leetspeak", "irc", "yomomma"];
 	this.cleanUp = function () {
@@ -44,15 +44,17 @@ exports = function HangMan (bot) {
 			if (this.games[key].owner === from && this.games[key].playIn === command[0] ||
 				this.games[key].playIn === from && this.games[key].owner === command[0]) {
 				bot.ircClient.say(from, "You are already playing a game with " + command[0] + " finish that game first or disband it with 'hangman disband' or wait 5 minutes till the game disbands itself.");
+				return;
 			}
 		}
 		var word;
 		if (command[1] === "randomword") {
-			word = this.words[Math.floor(Math.random * this.words.length)];
+			word = this.words[Math.floor(Math.random() * this.words.length)];
 		} else {
 			word = command[1];
 		}
 		if (!word || word === "" || word === " " || !command[0] || command[0] === "") {
+			console.log(from, command, word);
 			bot.ircClient.say(from, "You need to provide a channel or username as first argument and a word (or 'randomword') as second argument.");
 		} else {
 			this.games.push({
@@ -69,13 +71,12 @@ exports = function HangMan (bot) {
 		}
 	};
 	this.commands = {};
-	this.commands.start = this.start.bind(this);
 	this.commands.disband = function (from, to, message, command) {
 		var count = 0;
 		if (!command[0]) {
 			for (var key = 0; key < this.games.length; key++) {
 				if (this.games[key].owner === from) {
-					this.games[key].splice(key, 1);
+					this.games.splice(key, 1);
 					key--;
 					count++;
 				}
@@ -98,41 +99,47 @@ exports = function HangMan (bot) {
 		for (var key = 0; key < this.games.length; key++) {
 			if (this.games[key].playIn === from || (this.games[key].playIn === to && to !== bot.name)) {
 				this.games[key].accepted = true;
-				bot.ircClient.say("You succesfully accepted a game from " + this.games[key].owner);
-				bot.ircClient.say("The word you have to guesse:" + new Array(this.games[key].word.length + 1).join(' _') + " you have " + this.games[key].guessesLeft + " guesses to get it.");
+				bot.ircClient.say(this.games[key].playIn, "You succesfully accepted a game from " + this.games[key].owner);
+				bot.ircClient.say(this.games[key].playIn, "The word you have to guesse:" + new Array(this.games[key].word.length + 1).join(' _') + " you have " + this.games[key].guessesLeft + " guesses to get it.");
 				accepted = true;
 			}
 		}
 		if (!accepted) {
-			bot.ircClient.say("Sorry " + from + ", no game to accept :/ maybe you can invite someone?");
+			bot.ircClient.say(from, "Sorry " + from + ", no game to accept :/ maybe you can invite someone?");
 		}
 	}.bind(this);
 	this.commands.guesse = function (from, to, message, command) {
 		var guessed = false;
 		for (var key = 0; key < this.games.length; key++) {
 			if ((this.games[key].playIn === from || this.games[key].playIn === to) && (!command[1] || command[1] === this.games.playIn || command[1] === this.games.owner)) {
+				guessed = true;
 				if (command[0].length === 1) {
+					if (this.inArray(command[0], this.games[key].tried)) {
+						bot.ircClient.say(this.games[key].playIn, "The letter " + this.games[key].tried + " has already been guessed.");
+						continue;
+					}
 					this.games[key].tried.push(command[0]);
 				}
 				if (command[0] === this.games[key].word || this.wordGuessed(this.games[key].word, this.games[key].tried)) {
 					bot.ircClient.say(this.games[key].playIn, "Congratulations " + from + " you guessed the word '" + this.games[key].word + "' correctly with still " + this.games[key].guessesLeft + " guesses left.");
+					this.games.splice(key, 1);
 				} else if(command[0].length === 1 && this.letterInWord(this.games[key].word, command[0])) {
-					bot.ircClient.say(this.games[key].playIn, "Good " + from + ", " + commmand[0] + " was right, the current word is: " + this.wordWhenLettersGuessed(this.games[key].word, this.games[key].tried) + " and you have" + this.games[key].guessesLeft + " guesses left.");
+					bot.ircClient.say(this.games[key].playIn, "Good " + from + ", " + command[0] + " was right, the current word is: " + this.wordWhenLettersGuessed(this.games[key].word, this.games[key].tried) + " and you have " + this.games[key].guessesLeft + " guesses left.");
 				} else {
-					bor.ircClient.say(this.games[key].playIn, "Ouch " + from + ", " + command[0] + " isn't right, the current word is: " + this.wordWhenLettersGuessed(this.games[key].word, this.games[key].tried) + " and you have " + this.games[key].guessesLeft + " guesses left.");
+					this.games[key].guessesLeft--;
+					if (this.games[key].guessesLeft < 1) {
+						bot.ircClient.say(this.games[key].playIn, "Sorry " + from + ", but you have no more guesses left. The word was: " + this.games[key].word);
+						this.games.splice(key, 1);
+					} else {
+						bot.ircClient.say(this.games[key].playIn, "Ouch " + from + ", " + command[0] + " isn't right, the current word is: " + this.wordWhenLettersGuessed(this.games[key].word, this.games[key].tried) + " and you have " + this.games[key].guessesLeft + " guesses left.");
+					}
 				}
 			}
 		}
 		if (!guessed) {
-			this.games[key].guessesLeft--;
-			if (this.games[key].guessesLeft < 1) {
-				bot.ircClient.say(this.games[key].playIn, "Sorry " + from + ", but you have no more guesses left. The word was: " + this.games[key].word);
-				this.games.splice(key, 1);
-			} else {
-				bot.ircClient.say(this.games[key].playIn, "Sorry " + from + ", but I couldn't let you guesse, are you sure you are playing with someone?");
-			}
+			bot.ircClient.say(from, "Sorry " + from + ", but I couldn't let you guesse, are you sure you are playing with someone?");
 		}
-	};
+	}.bind(this);
 	this.commands.help = function (from, to, message, command) {
 		bot.ircClient.say(from, "You can start a game by saying: hangman start [channel/username] [word OR 'randomword']");
 	}.bind(this);
