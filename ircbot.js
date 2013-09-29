@@ -142,7 +142,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 	}.bind(this);
 	this.commands.identified = function (from, to, message, command) {
 		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
-			this.ircClient.say(to, "Yes, " + from + " you are identified for level " + this.identified[from].level + " during another " + Math.round((this.identified[from].at - 300000) / 1000) " second(s)");
+			this.ircClient.say(to, "Yes, " + from + " you are identified for level " + this.identified[from].level + " during another " + Math.round((this.identified[from].at - 300000) / 1000) + " second(s)");
 		} else {
 			this.ircClient.say(to, "No, " + from + " you are not identified.");
 		}
