@@ -86,8 +86,6 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		
 		console.log("Connecting to the irc server...");
 		this.ircClient = new requires.irc.Client(irc.server, irc.name, irc.config);
-		
-		console.log("Started listening for messages.");
 		this.ircClient.addListener("message", function (from, to, message) {
 			var command = message.split(" ");
 			if (command[0] === this.irc.name || to === this.irc.name) {
@@ -105,6 +103,17 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			});
 			console.log(from, to, message);
 		}.bind(this));
+		this.ircClient.addListener("registered", function () {
+			console.log("Connected to the irc server.");
+		});
+		
+		console.log("Initiating games.");
+		for (var key in this.games) {
+			if (typeof this.games[key].init === "function") {
+				this.games[key].init(this);
+			}
+		}
+		console.log("Games initiated.");
 	};
 	
 	this.commands = {};
