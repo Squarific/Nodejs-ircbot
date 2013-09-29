@@ -10,13 +10,34 @@ exports = function HangMan (bot) {
 		}
 	}
 	this.letterInWord = function (word, letter) {
-		
+		return this.inArray(letter, word);
+	};
+	this.inArray = function (el, arr) {
+		for (var key = 0; key < arr.length; key++) {
+			if (arr[key] === el) {
+				return true;
+			}
+		}
+		return false;
 	};
 	this.wordWhenLettersGuessed = function (word, letters) {
-		
+		var returnWord = "";
+		for (var key = 0; key < word.length; key++) {
+			if (this.inArray(word[key], letters)) {
+				returnWord += word[key] + " ";
+			} else {
+				returnWord += "_ "
+			}
+		}
+		return returnWord;
 	};
 	this.wordGuessed = function (word, letters) {
-		
+		for (var key = 0; key < word.length; key++) {
+			if (!this.inArray(word[key], letters)) {
+				return false;
+			}
+		}
+		return true;
 	};
 	this.start = function (from, command) {
 		for (var key = 0; key < this.games.length; key++) {
@@ -103,7 +124,13 @@ exports = function HangMan (bot) {
 			}
 		}
 		if (!guessed) {
-			bot.ircClient.say(from, "Sorry " + from + ", but I couldn't let you guesse, are you sure you are playing with someone?");
+			this.games[key].guessesLeft--;
+			if (this.games[key].guessesLeft < 1) {
+				bot.ircClient.say(this.games[key].playIn, "Sorry " + from + ", but you have no more guesses left. The word was: " + this.games[key].word);
+				this.games.splice(key, 1);
+			} else {
+				bot.ircClient.say(this.games[key].playIn, "Sorry " + from + ", but I couldn't let you guesse, are you sure you are playing with someone?");
+			}
 		}
 	};
 	this.commands.help = function (from, to, message, command) {
