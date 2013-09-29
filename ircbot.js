@@ -148,20 +148,37 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		}
 	}.bind(this);
 	this.commands.game = function (from, to, message, command) {
-		var game = command[0];
+		var game = command[0], sayTo;
 		command.splice(0, 1);
 		if (this.games[game] && typeof this.games[game].start === "function") {
 			this.games[game].start(from, command);
+		} else {
+			var games = [];
+			for (var key in this.games) {
+				games.push(key);
+			}
+			if (to !== this.irc.name) {
+				sayTo = to;
+			} else {
+				sayTo = from;
+			}
+			this.ircClient.say(sayTo, "This game wasn't found, the following games are available: " + games.join(", "))
 		}
 	}.bind(this);
 	this.commands.help = function (from, to, message, command) {
-		var cmds = [];
+		var cmds = [], sayTo;
 		for (var key in this.commands) {
 			if (this.commands.hasOwnProperty(key)) {
 				cmds.push(key);
 			}
 		}
-		this.ircClient(to, from + ", the following commands are available: " + cmds.join(", "));
+		if (to !== this.irc.name) {
+			sayTo = to;
+		} else {
+			sayTo = from;
+		}
+		this.ircClient(sayTo, from + ", the following commands are available: " + cmds.join(", "));
+		this.ircClient(sayTo, "My sourcecode can be found at: *url*")
 	}.bind(this);
 };
 
