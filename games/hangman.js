@@ -26,7 +26,7 @@ exports = function HangMan (bot) {
 			if (this.inArray(word[key], letters)) {
 				returnWord += word[key] + " ";
 			} else {
-				returnWord += "_ "
+				returnWord += "_ ";
 			}
 		}
 		return returnWord;

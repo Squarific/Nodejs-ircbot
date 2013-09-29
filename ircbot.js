@@ -82,7 +82,7 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "chat.freenode.net";
 		irc.name = irc.username || irc.name || "Theubercoolguyo";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || [""];
+		irc.config.channels = irc.config.channels || ["#node.js"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
@@ -95,7 +95,9 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 				} else {
 					command.splice(0, 1);
 				}
-				this.commands[command[0]](from, to, message, command)
+				if (typeof this.commands[command[0]] === "function") {
+					this.commands[command[0]](from, to, message, command)
+				}
 			}
 			if (this.games[command[0]] && typeof this.games[command[0]].commands[command[1]] === "function") {
 				command.splice(0, 2);
