@@ -82,26 +82,30 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "chat.freenode.net";
 		irc.name = irc.username || irc.name || "Theubercoolguyo";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#node.js"];
+		irc.config.channels = irc.config.channels || ["#node.js", "#lololol"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
 		this.ircClient = new requires.irc.Client(irc.server, irc.name, irc.config);
 		this.ircClient.addListener("message", function (from, to, message) {
-			var command = message.split(" ");
-			if (command[0] === this.irc.name || to === this.irc.name) {
-				if (command[0] === this.irc.name) {
+			var command = message.toLowerCase().split(" ");
+			if (this.games[command[0]] && typeof this.games[command[0]].commands[command[1]] === "function") {
+				var game = command[0],
+					cmd = command[1];
+				command.splice(0, 2);
+				this.games[game].commands[cmd](from, to, message, command);
+			} else if (command[0] === this.irc.name.toLowerCase() || to === this.irc.name.toLowerCase()) {
+				var cmd;
+				if (command[0] === this.irc.name.toLowerCase()) {
+					cmd = command[1];
 					command.splice(0, 2);
 				} else {
+					cmd = command[0];
 					command.splice(0, 1);
 				}
-				if (typeof this.commands[command[0]] === "function") {
-					this.commands[command[0]](from, to, message, command)
+				if (typeof this.commands[cmd] === "function") {
+					this.commands[cmd](from, to, message, command)
 				}
-			}
-			if (this.games[command[0]] && typeof this.games[command[0]].commands[command[1]] === "function") {
-				command.splice(0, 2);
-				this.games[command[0]].commands[command[1]](from, to, message, command);
 			}
 			this.database.query("INSERT INTO messages SET ?", {from: from, to: to, message: message}, function (err, result) {
 				if (err) {
@@ -110,22 +114,36 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			});
 			console.log(from, to, message);
 		}.bind(this));
+
 		this.ircClient.addListener("registered", function () {
 			console.log("Connected to the irc server.");
+		});
+
+		this.ircClient.addListener("error", function (err) {
+			console.log("IRC ERROR: ", err);
 		});
 		
 		console.log("Initiating games.");
 		for (var key in this.games) {
-			if (typeof this.games[key] === "function") {
-				this.games[key] = new this.games[key](this);
+			if (this.games[key] && typeof this.games[key].construct === "function") {
+				this.games[key] = new this.games[key].construct(this);
 			}
 		}
 		console.log("Games initiated.");
+		
+		this.identified = {};
 	};
 	
 	this.commands = {};
+	this.commands.join = function (from, to, message, command) {
+		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
+			this.ircClient.join(command[0]);
+		} else {
+			this.ircClient.say(from, "You are not identified. First identify yourself by messaging me 'identify [password]'");
+		}
+	}.bind(this);
 	this.commands.say = function (from, to, message, command) {
-		if (this.identified[from].at > Date.now() - 300000) {
+		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
 			var sayTo = command[0];
 			command.splice(0, 1)
 			this.ircClient.say(sayTo, command.join(" "));
@@ -139,15 +157,16 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 				at: Date.now(),
 				level: 0
 			};
+			this.ircClient.say(from, "Succesfully identified.");
 		} else {
 			this.ircClient.say(from, "Wrong password.");
 		}
 	}.bind(this);
 	this.commands.identified = function (from, to, message, command) {
 		if (this.identified[from] && this.identified[from].at > Date.now() - 300000) {
-			this.ircClient.say(to, "Yes, " + from + " you are identified for level " + this.identified[from].level + " during another " + Math.round((this.identified[from].at - 300000) / 1000) + " second(s)");
+			this.ircClient.say(from, "Yes, " + from + " you are identified for level " + this.identified[from].level + " during another " + Math.round((this.identified[from].at - 300000) / 1000) + " second(s)");
 		} else {
-			this.ircClient.say(to, "No, " + from + " you are not identified.");
+			this.ircClient.say(from, "No, " + from + " you are not identified.");
 		}
 	}.bind(this);
 	this.commands.game = function (from, to, message, command) {
@@ -160,12 +179,12 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 			for (var key in this.games) {
 				games.push(key);
 			}
-			if (to !== this.irc.name) {
+			if (to !== this.irc.name.toLowerCase()) {
 				sayTo = to;
 			} else {
 				sayTo = from;
 			}
-			this.ircClient.say(sayTo, "This game wasn't found, the following games are available: " + games.join(", "))
+			this.ircClient.say(sayTo, game + " wasn't found, the following games are available: " + games.join(", "))
 		}
 	}.bind(this);
 	this.commands.help = function (from, to, message, command) {
@@ -175,13 +194,13 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 				cmds.push(key);
 			}
 		}
-		if (to !== this.irc.name) {
+		if (to !== this.irc.name.toLowerCase()) {
 			sayTo = to;
 		} else {
 			sayTo = from;
 		}
-		this.ircClient(sayTo, from + ", the following commands are available: " + cmds.join(", "));
-		this.ircClient(sayTo, "My sourcecode can be found at: *url*")
+		this.ircClient.say(sayTo, from + ", the following commands are available: " + cmds.join(", "));
+		this.ircClient.say(sayTo, "My sourcecode can be found at: *url*")
 	}.bind(this);
 };
 
