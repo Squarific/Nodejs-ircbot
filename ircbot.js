@@ -82,9 +82,9 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "irc.snoonet.org";
 		irc.name = irc.username || irc.name || "urbangamebot";
 		irc.name = irc.name.toLowerCase();
-		irc.password = irc.password || "lolled1";
+		irc.password = irc.password || "mfoaijezmi";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#reddit", "#hangman"];
+		irc.config.channels = irc.config.channels || ["#hangman"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
@@ -213,4 +213,4 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 };
 
 console.log("Starting IRCBOT");
-SQUARIFIC.ircBot = new SQUARIFIC.IrcBot(requires, ["hangman"]);
+SQUARIFIC.ircBot = new SQUARIFIC.IrcBot(requires, ["hangman", "blackjack"]);
