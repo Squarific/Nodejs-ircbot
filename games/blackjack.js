@@ -152,7 +152,7 @@ exports.construct = function BlackJack (bot) {
 		for (var k in this.games[key].players) {
 			var score = this.sum(this.games[key].players[k].cards);
 			scores.push(k + " (" + score + ")");
-			if (score > winner.points && score < 22) {
+			if ((score > winner.points && score < 22) || (score < 22 && winner.points > 21)) {
 				winner.name = k;
 				winner.points = score;
 			} else if (score === winner.points && winner.points < 22) {

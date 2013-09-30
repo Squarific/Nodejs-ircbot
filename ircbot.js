@@ -82,9 +82,9 @@ SQUARIFIC.IrcBot = function IrcBot (requires, games, database, irc) {
 		irc.server = irc.server || "irc.snoonet.org";
 		irc.name = irc.username || irc.name || "urbangamebot";
 		irc.name = irc.name.toLowerCase();
-		irc.password = irc.password || "mfoaijezmi";
+		irc.password = irc.password || "*";
 		irc.config = irc.config || {};
-		irc.config.channels = irc.config.channels || ["#hangman"];
+		irc.config.channels = irc.config.channels || ["#hangman", "#blackjack"];
 		this.irc = irc;
 		
 		console.log("Connecting to the irc server...");
